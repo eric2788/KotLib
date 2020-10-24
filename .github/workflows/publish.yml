@@ -1,0 +1,53 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+env:
+  version: 0.2.12
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+name: Publish WorkFlows for KotLib
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        id: checkout-source
+        uses: actions/checkout@v2
+      - name: Set up JDK 11
+        id: setup-java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+      - name: Delete tag and release
+        id: delete-tag-release
+        uses: dev-drprasad/delete-tag-and-release@v0.1.2
+        with:
+          tag_name: ${{ env.version }}
+          delete_release: true
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.version }}
+          release_name: Release ${{ github.repository }}-${{ env.version }}
+          body: Please check the [spigot updates](https://www.spigotmc.org/resources/kotlib.74135/updates)
+          draft: false
+          prerelease: false
+      - name: Upload Release jar
+        id: upload-release-asset-jar
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./Plugin/target/KotLib-${{env.version}}.jar
+          asset_name: KotLib-${{ env.version }}.jar
+          asset_content_type: application/java-archive
