@@ -1,0 +1,4 @@
+name: KotLib
+author: Eric Lam
+version: ${project.version}
+main: com.ericlam.mc.kotlib.KotLibBungee

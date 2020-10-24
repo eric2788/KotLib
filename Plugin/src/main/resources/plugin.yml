@@ -1,0 +1,5 @@
+name: KotLib
+author: Eric Lam
+version: ${project.version}
+main: com.ericlam.mc.kotlib.KotLibSpigot
+api-version: "1.13"

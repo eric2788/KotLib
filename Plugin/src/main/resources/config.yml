@@ -1,0 +1,6 @@
+yaml_warn_if_foreign_key_unknown: false
+foreign_key_unchangeable: false
+foreign_key_mode: NULLABLE
+debug_enabled: false
+debug_plugins:
+  - KotLib

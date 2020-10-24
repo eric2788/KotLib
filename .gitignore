@@ -1,0 +1,7 @@
+# Project exclude paths
+/target/
+**/target
+KotLib.iml
+**/*.iml
+/.idea/
+**/dependency-reduced-pom.xml

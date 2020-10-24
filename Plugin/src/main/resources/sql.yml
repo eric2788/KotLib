@@ -1,0 +1,17 @@
+single_pool_enable: false
+data_source: "mysql"
+driver: "com.mysql.jdbc.Driver"
+host: "localhost"
+port: 3306
+database: "database"
+username: "username"
+password: "password"
+use_ssl: false
+pool:
+  name: KotLib
+  min_size: 5
+  max_size: 10
+  connection_timeout: 30000
+  idle_timeout: 60000
+  max_life_time: 600000
+# jdbc:mysql://localhost:3306/database
