@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ericlam.mc</groupId>
-    <artifactId>KotLib</artifactId>
+    <artifactId>kotlib</artifactId>
     <packaging>pom</packaging>
     <version>0.2.13</version>
 
     <modules>
         <module>kotlib-api</module>
-        <module>Plugin</module>
+        <module>kotlib-plugin</module>
     </modules>
 
     <properties>
@@ -256,6 +256,7 @@
     <distributionManagement>
         <repository>
             <id>github</id>
+            <name>GitHub eric2788 Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/eric2788/kotlib</url>
         </repository>
     </distributionManagement>

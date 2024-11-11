@@ -27,7 +27,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          path: ./Plugin/target/*.jar
+          path: ./kotlib-plugin/target/*.jar
   publish:
     runs-on: ubuntu-latest
     needs: build
@@ -44,11 +44,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ./Plugin/target/*.jar
+            ./kotlib-plugin/target/*.jar
           token: ${{ secrets.GITHUB_TOKEN }}
           body: Please check the [spigot updates](https://www.spigotmc.org/resources/kotlib.74135/updates)
       - name: Publish package (github)
         run: mvn --batch-mode clean deploy
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
