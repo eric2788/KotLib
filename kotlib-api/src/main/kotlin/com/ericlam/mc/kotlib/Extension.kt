@@ -170,10 +170,10 @@ class InsertOrUpdate<Key : Any>(
         table: Table,
         isIgnore: Boolean = false
 ) : InsertStatement<Key>(table, isIgnore) {
-    override fun prepareSQL(transaction: Transaction): String {
+    override fun prepareSQL(transaction: Transaction, prepared: Boolean): String {
         val onUpdateSQL = if (onDuplicateUpdateKeys.isNotEmpty()) {
             " ON DUPLICATE KEY UPDATE " + onDuplicateUpdateKeys.joinToString { "${transaction.identity(it)}=VALUES(${transaction.identity(it)})" }
         } else ""
-        return super.prepareSQL(transaction) + onUpdateSQL
+        return super.prepareSQL(transaction, prepared) + onUpdateSQL
     }
 }

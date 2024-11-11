@@ -3,7 +3,6 @@ package com.ericlam.mc.kotlib.bukkit
 import com.ericlam.mc.kotlib.*
 import com.ericlam.mc.kotlib.async.AsyncInvoker
 import com.ericlam.mc.kotlib.command.BukkitCommand
-import com.ericlam.mc.kotlib.item.ItemMetaAdapter
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.event.player.PlayerInteractEvent
@@ -65,8 +64,6 @@ interface BukkitUtils {
     ): BukkitTask
 
     fun debug(msg: String?)
-
-    fun getItemMetaAdapter(itemStack: ItemStack): ItemMetaAdapter
 
     val currentMCVersion: String
 
