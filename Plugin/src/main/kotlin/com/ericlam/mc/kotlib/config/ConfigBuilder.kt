@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
@@ -52,7 +53,7 @@ class ConfigBuilder(private val plugin: KotlinPlugin) : ConfigFactory {
             private val delegateMap: MutableMap<KClass<out DataFile>, CustomDao<out DataFile, *>> = ConcurrentHashMap()
 
             private val ktModule by lazy {
-                KotlinModule().runIf(!KotLib.isBungee(plugin)) { CSObject.setupCSForBukkit(it) }
+                kotlinModule().runIf(!KotLib.isBungee(plugin)) { CSObject.setupCSForBukkit(it) }
             }
 
             private val mapper: ObjectMapper by lazy {

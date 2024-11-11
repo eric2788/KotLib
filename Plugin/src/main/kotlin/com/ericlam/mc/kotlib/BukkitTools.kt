@@ -6,9 +6,6 @@ import com.ericlam.mc.kotlib.bukkit.BukkitPlugin
 import com.ericlam.mc.kotlib.bukkit.BukkitUtils
 import com.ericlam.mc.kotlib.command.BukkitCommand
 import com.ericlam.mc.kotlib.command.KCommand
-import com.ericlam.mc.kotlib.item.ItemMetaAdapter
-import com.ericlam.mc.kotlib.item.ItemMetaAdapterR113
-import com.ericlam.mc.kotlib.item.ItemMetaAdapterR114
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
@@ -19,6 +16,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.Damageable
 import org.bukkit.scheduler.BukkitTask
 import java.util.concurrent.TimeUnit
 
@@ -28,7 +26,12 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
         return BukkitAsyncInvoker(run, plugin)
     }
 
-    override fun command(name: String, permission: String?, vararg aliases: String, executor: BukkitPluginCommand.(BukkitSender, Array<String>) -> Unit) {
+    override fun command(
+        name: String,
+        permission: String?,
+        vararg aliases: String,
+        executor: BukkitPluginCommand.(BukkitSender, Array<String>) -> Unit
+    ) {
         plugin.getCommand(name)!!.also {
             it.aliases = aliases.toList()
             it.setExecutor { sender, _, _, args ->
@@ -39,7 +42,12 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
         }
     }
 
-    override fun command(name: String, permission: String?, vararg aliases: String, executor: BukkitSender.(Array<String>) -> Unit) {
+    override fun command(
+        name: String,
+        permission: String?,
+        vararg aliases: String,
+        executor: BukkitSender.(Array<String>) -> Unit
+    ) {
         command(name, permission, *aliases) { sender, args -> sender.executor(args) }
     }
 
@@ -55,7 +63,7 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
 
     override fun registerCommand(cmd: BukkitCommand) {
         val pcmd = plugin.getCommand(cmd.name)
-                ?: let { plugin.logger.warning("${cmd.name} is not exist in plugin.yml"); return }
+            ?: let { plugin.logger.warning("${cmd.name} is not exist in plugin.yml"); return }
         pcmd.description = cmd.description
         pcmd.setExecutor { commandSender, _, _, strings ->
             val sender: KCommand.CommandSender = BukkitCommandSender(commandSender)
@@ -67,17 +75,27 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
 
     private val listener: BukkitListener = object : BukkitListener {}
 
-    override fun <T : BukkitEvent> listen(cls: Class<T>, priority: BukkitEventPriority, ignoreCancelled: Boolean, callback: (T) -> Unit) {
+    override fun <T : BukkitEvent> listen(
+        cls: Class<T>,
+        priority: BukkitEventPriority,
+        ignoreCancelled: Boolean,
+        callback: (T) -> Unit
+    ) {
         plugin.server.pluginManager.registerEvent(
-                cls, listener,
-                priority, { _, it -> if (cls.isInstance(it)) callback(cls.cast(it)) },
-                plugin, ignoreCancelled
+            cls, listener,
+            priority, { _, it -> if (cls.isInstance(it)) callback(cls.cast(it)) },
+            plugin, ignoreCancelled
         )
     }
 
-    override fun createGUI(row: Int, title: String, fills: Map<IntRange, Clicker>, items: () -> Map<Int, Clicker>): Inventory {
+    override fun createGUI(
+        row: Int,
+        title: String,
+        fills: Map<IntRange, Clicker>,
+        items: () -> Map<Int, Clicker>
+    ): Inventory {
         val inv = Bukkit.createInventory(null, row.takeIf { it in 1..6 }?.let { it * 9 }
-                ?: 54, title.translateColorCode())
+            ?: 54, title.translateColorCode())
         val map = items.invoke()
         for (fill in fills) {
             fill.key.forEach { inv.setItem(it, fill.value.stack) }
@@ -92,19 +110,25 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
             val slot = it.slot
             val stack = it.currentItem ?: return@listen
             map[slot]?.click?.invoke(it, player, stack) ?: kotlin.run {
-                fills.filterKeys { range -> slot in range }.entries.singleOrNull()?.value?.click?.invoke(it, player, stack)
+                fills.filterKeys { range -> slot in range }.entries.singleOrNull()?.value?.click?.invoke(
+                    it,
+                    player,
+                    stack
+                )
             }
         }
         return inv
     }
 
-    override fun itemStack(material: Material,
-                           amount: Int, display: String?,
-                           lore: List<String>, unbreakable: Boolean,
-                           durability: Int, enchant: Map<Enchantment, Int>,
-                           customModelData: Int, vararg itemFlags: ItemFlag,
-                           consumeEvent: (PlayerItemConsumeEvent.(ItemStack) -> Unit)?,
-                           clickEvent: (PlayerInteractEvent.(ItemStack) -> Unit)?): ItemStack {
+    override fun itemStack(
+        material: Material,
+        amount: Int, display: String?,
+        lore: List<String>, unbreakable: Boolean,
+        durability: Int, enchant: Map<Enchantment, Int>,
+        customModelData: Int, vararg itemFlags: ItemFlag,
+        consumeEvent: (PlayerItemConsumeEvent.(ItemStack) -> Unit)?,
+        clickEvent: (PlayerInteractEvent.(ItemStack) -> Unit)?
+    ): ItemStack {
         val stack = ItemStack(material, amount)
         stack.addEnchantments(enchant)
 
@@ -112,13 +136,11 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
             display?.translateColorCode()?.let { meta.setDisplayName(it) }
             meta.lore = lore.map { it.translateColorCode() }
             meta.isUnbreakable = unbreakable
+            (meta as? Damageable)?.also { it.damage = durability }
             itemFlags.not(emptyArray())?.also { meta.addItemFlags(*itemFlags) }
+            customModelData.not(-1)?.also { meta.setCustomModelData(it) }
             stack.itemMeta = meta
         }
-
-        val adapter = getItemMetaAdapter(stack)
-        adapter.setDurability(durability)
-        customModelData.not(-1)?.also { adapter.setModelData(it) }
 
         consumeEvent?.let {
             plugin.listen<PlayerItemConsumeEvent> { e ->
@@ -135,7 +157,13 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
         return stack
     }
 
-    override fun schedule(async: Boolean, delay: Long, period: Long, unit: TimeUnit, callback: BukkitTask.() -> Unit): BukkitTask {
+    override fun schedule(
+        async: Boolean,
+        delay: Long,
+        period: Long,
+        unit: TimeUnit,
+        callback: BukkitTask.() -> Unit
+    ): BukkitTask {
         lateinit var task: BukkitTask
         fun f() = task.callback()
         with(plugin.server.scheduler) {
@@ -149,12 +177,14 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
                             else -> runTaskTimer(plugin, ::f, sdelay, speriod)
                         }
                     }
+
                     delay > 0 -> {
                         when {
                             async -> runTaskLaterAsynchronously(plugin, ::f, sdelay)
                             else -> runTaskLater(plugin, ::f, sdelay)
                         }
                     }
+
                     async -> runTaskAsynchronously(plugin, ::f)
                     else -> runTask(plugin, ::f)
                 }
@@ -165,15 +195,6 @@ class BukkitTools(private val plugin: BukkitPlugin) : BukkitUtils {
 
     override fun debug(msg: String?) {
         KotLib.debug(plugin.name, plugin.kLogger, msg)
-    }
-
-    override fun getItemMetaAdapter(itemStack: ItemStack): ItemMetaAdapter {
-        val ver = currentMCVersion
-        return when {
-            ver.startsWith("1.13") -> ItemMetaAdapterR113(itemStack)
-            ver.isNewerThan("1.14") || ver.startsWith("1.14") -> ItemMetaAdapterR114(itemStack)
-            else -> throw IllegalStateException("KotLib does not support your current server version. ($currentMCVersion)")
-        }
     }
 
     override val currentMCVersion: String = Bukkit.getBukkitVersion().substring(0..5)
